@@ -3,16 +3,16 @@ import json
 
 def send_pushplus(token, title, content):
     url = "http://www.pushplus.plus/send"
-    headers = {"Content-Type": "application/json"}
-    data = {
+    data = json.dumps({
         "token": token,
         "title": title,
         "content": content,
         "template": "html",
-    }
+    }, ensure_ascii=False).encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
 
     try:
-        resp = requests.post(url, headers=headers, json=data, timeout=30)
+        resp = requests.post(url, headers=headers, data=data, timeout=30)
         result = resp.json()
         if result.get("code") == 200:
             print(f"[PushPlus] Sent: {title}")
@@ -68,7 +68,7 @@ def send_notification(token, notices, config):
 
     html_content = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-        <h2 style="color:#2c3e50;border-bottom:2px solid #3498db;padding-bottom:10px;">📚 重庆理工大学通知监控</h2>
+        <h2 style="color:#2c3e50;border-bottom:2px solid #3498db;padding-bottom:10px;">重庆理工大学通知监控</h2>
         <p style="color:#555;font-size:14px;">{greeting}</p>
         <p style="color:#777;font-size:13px;">以下是与你相关的通知（共 {len(notices)} 条）：</p>
         <div style="margin-top:15px;">
@@ -80,11 +80,11 @@ def send_notification(token, notices, config):
     html_content += """
         </div>
         <div style="margin-top:20px;padding:10px;background:#ecf0f1;border-radius:5px;font-size:12px;color:#7f8c8d;">
-            <p>💡 评分说明：满分100分，基于通知内容与你的专业、兴趣、班级的相关程度自动评估。</p>
-            <p>🔗 本消息由 CQUT-Monitor 自动推送 | <a href="https://github.com">GitHub Actions</a></p>
+            <p>评分说明：满分100分，基于通知内容与你的专业、兴趣、班级的相关程度自动评估。</p>
+            <p>本消息由 CQUT-Monitor 自动推送</p>
         </div>
     </div>
     """
 
-    title = f"📚 CQUT通知 | {len(notices)}条新消息"
+    title = f"CQUT通知 | {len(notices)}条新消息"
     send_pushplus(token, title, html_content)
