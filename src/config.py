@@ -9,7 +9,11 @@ def load_config():
         return json.load(f)
 
 def get_pushplus_token():
-    return os.environ.get("PUSHPLUS_TOKEN", "")
+    token = os.environ.get("PUSHPLUS_TOKEN", "")
+    if token:
+        return token
+    config = load_config()
+    return config.get("pushplus_token", "")
 
 def get_notified_ids():
     cache_file = os.path.join(CACHE_DIR, "notified_ids.json")

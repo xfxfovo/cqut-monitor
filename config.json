@@ -15,15 +15,11 @@
     "机械", "机电", "电子", "工程", "自动化",
     "班长", "班委", "学生会", "社团", "志愿者"
   ],
+  "pushplus_token": "23b275b6c31b4a23b494cfc30f889f51",
   "websites": [
     {
       "name": "教务处",
       "url": "https://jwc.cqut.edu.cn",
-      "list_path": "/tzgg/list.htm"
-    },
-    {
-      "name": "机械工程学院",
-      "url": "https://jxgcxy.cqut.edu.cn",
       "list_path": "/tzgg/list.htm"
     },
     {

@@ -17,7 +17,7 @@ def main():
     token = get_pushplus_token()
 
     if not token:
-        print("[ERROR] PUSHPLUS_TOKEN not set!")
+        print("[ERROR] PUSHPLUS_TOKEN not set in config.json!")
         return
 
     notified_ids = get_notified_ids()
@@ -35,7 +35,7 @@ def main():
 
     print("[*] Analyzing relevance...")
     relevant_notices = analyze_notices(new_notices, config)
-    print(f"[*] {len(relevant_notices)} notices with score >= {config.get('min_relevance_score', 30)}")
+    print(f"[*] {len(relevant_notices)} relevant notices")
 
     if relevant_notices:
         print("[*] Sending notification...")
