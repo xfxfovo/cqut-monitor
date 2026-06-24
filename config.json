@@ -1,0 +1,36 @@
+{
+  "user": {
+    "name": "肖仁康",
+    "student_id": "124120402",
+    "college": "机械工程学院",
+    "major": "机械电子工程",
+    "class": "124120402",
+    "role": "班长"
+  },
+  "interests": [
+    "学科竞赛", "挑战杯", "数学建模", "电子设计",
+    "个人成长", "讲座", "培训", "实习", "就业",
+    "奖学金", "评优", "科技创新", "科研", "论文",
+    "保研", "考研", "英语", "计算机", "编程",
+    "机械", "机电", "电子", "工程", "自动化",
+    "班长", "班委", "学生会", "社团", "志愿者"
+  ],
+  "websites": [
+    {
+      "name": "教务处",
+      "url": "https://jwc.cqut.edu.cn",
+      "list_path": "/tzgg/list.htm"
+    },
+    {
+      "name": "机械工程学院",
+      "url": "https://jxgcxy.cqut.edu.cn",
+      "list_path": "/tzgg/list.htm"
+    },
+    {
+      "name": "学校主页",
+      "url": "https://www.cqut.edu.cn",
+      "list_path": "/col/col37271/index.html"
+    }
+  ],
+  "min_relevance_score": 30
+}
