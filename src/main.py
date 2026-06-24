@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import os
 
@@ -9,7 +8,7 @@ from src.scraper import scrape_all
 from src.analyzer import analyze_notices
 from src.notifier import send_notification
 
-async def main():
+def main():
     print("=" * 50)
     print("CQUT Notification Monitor")
     print("=" * 50)
@@ -24,7 +23,7 @@ async def main():
     notified_ids = get_notified_ids()
 
     print("[*] Scraping websites...")
-    all_notices = await scrape_all(config)
+    all_notices = scrape_all(config)
     print(f"[*] Found {len(all_notices)} notices total")
 
     new_notices = [n for n in all_notices if n["id"] not in notified_ids]
@@ -52,4 +51,4 @@ async def main():
     print("[*] Done!")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
