@@ -20,12 +20,37 @@
     {
       "name": "教务处",
       "url": "https://jwc.cqut.edu.cn",
-      "list_path": "/tzgg/list.htm"
+      "paths": ["/index.htm"]
     },
     {
       "name": "学校主页",
       "url": "https://www.cqut.edu.cn",
-      "list_path": "/col/col37271/index.html"
+      "paths": ["/col/col37271/index.html"]
+    },
+    {
+      "name": "机械工程学院",
+      "url": "https://jxgcxy.cqut.edu.cn",
+      "paths": ["/index.htm", "/tzgg/list.htm", "/jwgg/list.htm", "/xwdt/list.htm"]
+    },
+    {
+      "name": "学生处",
+      "url": "https://xsc.cqut.edu.cn",
+      "paths": ["/index.htm", "/tzgg/list.htm"]
+    },
+    {
+      "name": "招生就业处",
+      "url": "https://jyc.cqut.edu.cn",
+      "paths": ["/index.htm", "/tzgg/list.htm"]
+    },
+    {
+      "name": "科技处",
+      "url": "https://kyc.cqut.edu.cn",
+      "paths": ["/index.htm", "/tzgg/list.htm"]
+    },
+    {
+      "name": "团委",
+      "url": "https://tw.cqut.edu.cn",
+      "paths": ["/index.htm", "/tzgg/list.htm"]
     }
   ],
   "min_relevance_score": 30
