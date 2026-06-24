@@ -1,3 +1,4 @@
+import asyncio
 import sys
 import os
 
@@ -8,7 +9,7 @@ from src.scraper import scrape_all
 from src.analyzer import analyze_notices
 from src.notifier import send_notification
 
-def main():
+async def main():
     print("=" * 50)
     print("CQUT Notification Monitor")
     print("=" * 50)
@@ -18,13 +19,12 @@ def main():
 
     if not token:
         print("[ERROR] PUSHPLUS_TOKEN not set!")
-        print("Please set it in GitHub Actions Secrets or as environment variable.")
         return
 
     notified_ids = get_notified_ids()
 
-    print(f"[*] Scraping websites...")
-    all_notices = scrape_all(config)
+    print("[*] Scraping websites...")
+    all_notices = await scrape_all(config)
     print(f"[*] Found {len(all_notices)} notices total")
 
     new_notices = [n for n in all_notices if n["id"] not in notified_ids]
@@ -34,12 +34,12 @@ def main():
         print("[*] No new notices. Done.")
         return
 
-    print(f"[*] Analyzing relevance...")
+    print("[*] Analyzing relevance...")
     relevant_notices = analyze_notices(new_notices, config)
     print(f"[*] {len(relevant_notices)} notices with score >= {config.get('min_relevance_score', 30)}")
 
     if relevant_notices:
-        print(f"[*] Sending notification...")
+        print("[*] Sending notification...")
         send_notification(token, relevant_notices, config)
         new_ids = notified_ids | {n["id"] for n in new_notices}
         save_notified_ids(new_ids)
@@ -52,4 +52,4 @@ def main():
     print("[*] Done!")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

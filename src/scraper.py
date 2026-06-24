@@ -1,94 +1,120 @@
-import requests
+import asyncio
+from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import hashlib
-import time
 import random
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
 ]
-
-def get_headers():
-    return {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-    }
 
 def generate_id(title, url):
     content = f"{title}:{url}"
     return hashlib.md5(content.encode("utf-8")).hexdigest()
 
-def scrape_website(site_config):
+async def scrape_with_browser(url, timeout=30000):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page(
+            user_agent=random.choice(USER_AGENTS),
+            locale="zh-CN",
+            timezone_id="Asia/Shanghai",
+        )
+        try:
+            await page.goto(url, wait_until="networkidle", timeout=timeout)
+            await page.wait_for_timeout(3000)
+            content = await page.content()
+            await browser.close()
+            return content
+        except Exception as e:
+            print(f"  Browser error: {e}")
+            await browser.close()
+            return None
+
+def parse_notices(html, base_url, site_name):
     notices = []
-    base_url = site_config["url"]
-    list_path = site_config.get("list_path", "/tzgg/list.htm")
-    site_name = site_config["name"]
+    soup = BeautifulSoup(html, "lxml")
 
-    try:
-        full_url = urljoin(base_url, list_path)
-        resp = requests.get(full_url, headers=get_headers(), timeout=15, verify=False)
-        resp.encoding = resp.apparent_encoding or "utf-8"
+    selectors = [
+        "ul.news-list li",
+        "ul.list li",
+        "div.news-list li",
+        "table.list_table tr",
+        "div.list-item",
+        "div.list_item",
+        "li.list_item",
+        "ul.notice-list li",
+        "div.notice-list li",
+    ]
 
-        if resp.status_code != 200:
-            print(f"[{site_name}] HTTP {resp.status_code}: {full_url}")
-            return notices
+    items = []
+    for sel in selectors:
+        items = soup.select(sel)
+        if items:
+            break
 
-        soup = BeautifulSoup(resp.text, "lxml")
+    if not items:
+        items = soup.select("li a[href]")
 
-        list_items = soup.select("ul.news-list li, ul.list li, div.news-list li, table.list_table tr, div.list-item")
-        if not list_items:
-            list_items = soup.select("li a, td a, div.title a")
+    for item in items[:30]:
+        try:
+            if item.name == "a":
+                link_tag = item
+            else:
+                link_tag = item.select_one("a[href]")
 
-        for item in list_items[:30]:
-            try:
-                if item.name == "a":
-                    link_tag = item
-                else:
-                    link_tag = item.select_one("a")
-
-                if not link_tag or not link_tag.get("href"):
-                    continue
-
-                href = link_tag["href"]
-                full_link = urljoin(base_url, href)
-
-                title = link_tag.get_text(strip=True)
-                if not title:
-                    continue
-
-                date_tag = item.select_one("span.date, span.time, td:last-child, span:nth-child(2)")
-                date_str = date_tag.get_text(strip=True) if date_tag else ""
-
-                notice_id = generate_id(title, full_link)
-
-                notices.append({
-                    "id": notice_id,
-                    "title": title,
-                    "url": full_link,
-                    "date": date_str,
-                    "source": site_name,
-                })
-            except Exception as e:
+            if not link_tag or not link_tag.get("href"):
                 continue
 
-        time.sleep(random.uniform(1, 3))
+            href = link_tag["href"]
+            if href.startswith("javascript") or href == "#":
+                continue
 
-    except Exception as e:
-        print(f"[{site_name}] Error: {e}")
+            full_link = urljoin(base_url, href)
+            title = link_tag.get_text(strip=True)
+
+            if not title or len(title) < 4:
+                continue
+
+            date_tag = item.select_one("span.date, span.time, td:last-child, span:nth-child(2)")
+            date_str = date_tag.get_text(strip=True) if date_tag else ""
+
+            notice_id = generate_id(title, full_link)
+
+            notices.append({
+                "id": notice_id,
+                "title": title,
+                "url": full_link,
+                "date": date_str,
+                "source": site_name,
+            })
+        except Exception:
+            continue
 
     return notices
 
-def scrape_all(config):
+async def scrape_website(site_config):
+    base_url = site_config["url"]
+    list_path = site_config.get("list_path", "/tzgg/list.htm")
+    site_name = site_config["name"]
+    full_url = urljoin(base_url, list_path)
+
+    print(f"  [{site_name}] Scraping {full_url}...")
+
+    html = await scrape_with_browser(full_url)
+    if not html:
+        return []
+
+    notices = parse_notices(html, base_url, site_name)
+    print(f"  [{site_name}] Found {len(notices)} notices")
+    return notices
+
+async def scrape_all(config):
     all_notices = []
     for site in config.get("websites", []):
-        notices = scrape_website(site)
+        notices = await scrape_website(site)
         all_notices.extend(notices)
+        await asyncio.sleep(random.uniform(2, 5))
     return all_notices
